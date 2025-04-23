@@ -1,5 +1,7 @@
 #include <raylib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -49,13 +51,13 @@ void update_vertical_location(Ball *ball, Platform *platforms,
     // If ball was coming down and it hits a platform, stop it
     if (on_platform && (*ball).velocity > 0) {
       (*ball).velocity = 0;
-      (*ball).y = (*on_platform).y - (*ball).size;
+      (*ball).y = (*on_platform).y - (*ball).size + 1;
     }
   }
 }
 
 int main() {
-  setvbuf(stdout, NULL, _IONBF, 0);
+  srand(time(NULL));
 
   SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
 
@@ -67,12 +69,18 @@ int main() {
                .jump_strength = JUMP_STRENGTH,
                .velocity = 0};
 
-  int platform_count = 2;
+  int platform_count = 11;
   Platform platforms[platform_count];
   platforms[0] =
       (Platform){.x = 0, .y = PIXEL_Y - 20, .width = PIXEL_X, .height = 20};
-  platforms[1] =
-      (Platform){.x = 0, .y = PIXEL_Y - 200, .width = 400, .height = 20};
+  for (int i = 1; i < platform_count; i++) {
+    platforms[i] = (Platform){
+        .x = 0, .y = platforms[i - 1].y - 150, .width = 400, .height = 20};
+    if (i % 2 == 0) {
+      // Move half of the platform to the right side of the screen
+      platforms[i].x = 880;
+    }
+  }
 
   SetTargetFPS(60);
 
@@ -80,6 +88,22 @@ int main() {
     BeginDrawing();
 
     ClearBackground(RAYWHITE);
+
+    // Move the platforms
+    // Platfrom at index 0 is the ground, do not move the ground
+    // Add some randomization when platforms are reborn
+    for (int i = 1; i < platform_count; i++) {
+      platforms[i].y += 1;
+      if (platforms[i].y > PIXEL_Y + 200) {
+        platforms[i].y = 0 - platforms[i].height;
+        if (platforms[i].x == 0) {
+          platforms[i].width = rand() % 200 + 400;
+        } else {
+          platforms[i].x = rand() % 200 + 780;
+          platforms[i].width = PIXEL_X - platforms[i].x;
+        }
+      }
+    }
 
     for (int i = 0; i < platform_count; i++) {
       DrawRectangle(platforms[i].x, platforms[i].y, platforms[i].width,
@@ -94,7 +118,7 @@ int main() {
       ball.x = MIN(BALL_RIGHT_LIMIT, ball.x + 8);
     }
 
-    // Control vertical movement
+    // Add jump
     if ((ball_on_platform(&ball, platforms, platform_count)) &&
         IsKeyPressed(KEY_SPACE)) {
       ball.velocity = JUMP_STRENGTH;
