@@ -51,7 +51,7 @@ void update_vertical_location(Ball *ball, Platform *platforms,
     // If ball was coming down and it hits a platform, stop it
     if (on_platform && (*ball).velocity > 0) {
       (*ball).velocity = 0;
-      (*ball).y = (*on_platform).y - (*ball).size + 1;
+      (*ball).y = (*on_platform).y - (*ball).size;
     }
   }
 }
@@ -89,22 +89,6 @@ int main() {
 
     ClearBackground(RAYWHITE);
 
-    // Move the platforms
-    // Platfrom at index 0 is the ground, do not move the ground
-    // Add some randomization when platforms are reborn
-    for (int i = 1; i < platform_count; i++) {
-      platforms[i].y += 1;
-      if (platforms[i].y > PIXEL_Y + 200) {
-        platforms[i].y = 0 - platforms[i].height;
-        if (platforms[i].x == 0) {
-          platforms[i].width = rand() % 200 + 400;
-        } else {
-          platforms[i].x = rand() % 200 + 780;
-          platforms[i].width = PIXEL_X - platforms[i].x;
-        }
-      }
-    }
-
     for (int i = 0; i < platform_count; i++) {
       DrawRectangle(platforms[i].x, platforms[i].y, platforms[i].width,
                     platforms[i].height, BLACK);
@@ -123,6 +107,23 @@ int main() {
         IsKeyPressed(KEY_SPACE)) {
       ball.velocity = JUMP_STRENGTH;
     }
+
+    // Move the platforms
+    // Platfrom at index 0 is the ground, do not move the ground
+    // Add some randomization when platforms are reborn
+    for (int i = 1; i < platform_count; i++) {
+      platforms[i].y += 1;
+      if (platforms[i].y > PIXEL_Y + 200) {
+        platforms[i].y = 0 - platforms[i].height;
+        if (platforms[i].x == 0) {
+          platforms[i].width = rand() % 200 + 400;
+        } else {
+          platforms[i].x = rand() % 200 + 780;
+          platforms[i].width = PIXEL_X - platforms[i].x;
+        }
+      }
+    }
+
     update_vertical_location(&ball, platforms, platform_count);
 
     DrawCircle(ball.x, ball.y, ball.size, RED);
