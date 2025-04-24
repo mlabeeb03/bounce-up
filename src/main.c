@@ -24,13 +24,14 @@ typedef struct {
 Platform *ball_on_platform(Ball *ball, Platform *platform, int platform_count) {
 
   Vector2 center = {.x = (*ball).x, .y = (*ball).y};
-  Rectangle bounding_box = {.x = (*ball).x - (*ball).size + 10,
-                            .y = (*ball).y - (*ball).size,
-                            .width = (*ball).size * 2 - 10,
-                            .height = (*ball).size * 2 + 1};
+  // We only consider the bottom 2 pixels of the ball for collision
+  Rectangle ball_base = {.x = (*ball).x - (*ball).size + 20,
+                         .y = (*ball).y + (*ball).size - 1,
+                         .width = (*ball).size * 2 - 20,
+                         .height = 2};
   for (int i = 0; i < platform_count; i++) {
     Rectangle rectangle = *(Rectangle *)&platform[i];
-    if (CheckCollisionRecs(bounding_box, rectangle)) {
+    if (CheckCollisionRecs(ball_base, rectangle)) {
       return &platform[i];
     }
   }
@@ -64,22 +65,20 @@ int main() {
   InitWindow(PIXEL_X, PIXEL_Y, "cgame");
 
   Ball ball = {.x = PIXEL_X / 2,
-               .y = PIXEL_Y / 2,
+               0,
                .size = BALL_RADIUS,
                .jump_strength = JUMP_STRENGTH,
                .velocity = 0};
 
-  int platform_count = 11;
+  int platform_count = 10;
   Platform platforms[platform_count];
   platforms[0] =
       (Platform){.x = 0, .y = PIXEL_Y - 20, .width = PIXEL_X, .height = 20};
   for (int i = 1; i < platform_count; i++) {
-    platforms[i] = (Platform){
-        .x = 0, .y = platforms[i - 1].y - 150, .width = 400, .height = 20};
-    if (i % 2 == 0) {
-      // Move half of the platform to the right side of the screen
-      platforms[i].x = 880;
-    }
+    platforms[i] = (Platform){.x = rand() % PIXEL_X - 100,
+                              .y = platforms[i - 1].y - 100,
+                              .width = 400,
+                              .height = 20};
   }
 
   SetTargetFPS(60);
@@ -115,12 +114,8 @@ int main() {
       platforms[i].y += 1;
       if (platforms[i].y > PIXEL_Y + 200) {
         platforms[i].y = 0 - platforms[i].height;
-        if (platforms[i].x == 0) {
-          platforms[i].width = rand() % 200 + 400;
-        } else {
-          platforms[i].x = rand() % 200 + 780;
-          platforms[i].width = PIXEL_X - platforms[i].x;
-        }
+        platforms[i].x = rand() % PIXEL_X - 100;
+        platforms[i].width = rand() % 400 + 200;
       }
     }
 
